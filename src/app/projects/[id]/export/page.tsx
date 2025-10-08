@@ -101,14 +101,9 @@ export default function ExportPage() {
     URL.revokeObjectURL(url)
   }
 
-  function downloadAllFiles() {
-    if (!downloadData) return
-
-    downloadData.outputs.forEach(output => {
-      setTimeout(() => {
-        downloadFile(output.filename, output.content)
-      }, 100)
-    })
+  function downloadAllAsZip() {
+    if (!projectId) return
+    window.location.href = `/api/projects/${projectId}/download`
   }
 
   return (
@@ -207,9 +202,9 @@ export default function ExportPage() {
                 <Separator />
 
                 <div className="flex gap-2">
-                  <Button onClick={downloadAllFiles} className="flex-1">
+                  <Button onClick={downloadAllAsZip} className="flex-1">
                     <Download className="mr-2 h-4 w-4" />
-                    Download All
+                    Download All as ZIP
                   </Button>
                   <Button
                     variant="outline"

@@ -1,6 +1,7 @@
-import { NextRequest } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { apiSuccess, apiError, validateProjectId } from "@/lib/api-utils"
+import { apiError, validateProjectId } from "@/lib/api-utils"
+import JSZip from "jszip"
 
 export async function GET(
   request: NextRequest,
@@ -29,22 +30,30 @@ export async function GET(
       return apiError("No outputs generated yet. Generate outputs first.", 400)
     }
 
-    const outputsData = project.outputs.map(output => ({
-      filename: getFilenameForType(output.type),
-      type: output.type,
-      content: output.content,
-    }))
+    const zip = new JSZip()
 
-    return apiSuccess({
-      projectName: project.name,
-      projectDescription: project.description,
-      generatedAt: new Date().toISOString(),
-      outputs: outputsData,
+    project.outputs.forEach(output => {
+      const filename = getFilenameForType(output.type)
+      zip.file(filename, output.content)
+    })
+
+    const zipBuffer = await zip.generateAsync({ type: "nodebuffer" })
+
+    const sanitizedProjectName = project.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")
+    const zipFilename = `${sanitizedProjectName}-specs.zip`
+
+    return new NextResponse(zipBuffer, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/zip",
+        "Content-Disposition": `attachment; filename="${zipFilename}"`,
+        "Content-Length": zipBuffer.length.toString(),
+      },
     })
   } catch (error) {
     console.error("Download error:", error)
     return apiError(
-      error instanceof Error ? error.message : "Failed to fetch outputs",
+      error instanceof Error ? error.message : "Failed to generate ZIP file",
       500
     )
   }
