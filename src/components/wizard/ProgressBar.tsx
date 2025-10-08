@@ -42,8 +42,8 @@ export function ProgressBar({ projectId }: ProgressBarProps) {
     key.startsWith(`${projectId}-`)
   ).length;
 
-  const completedCount = answeredCount + skippedCount;
-  const overallProgress = Math.round((completedCount / totalQuestions) * 100);
+  const completedCount = Math.min(answeredCount + skippedCount, totalQuestions);
+  const overallProgress = Math.min(Math.round((completedCount / totalQuestions) * 100), 100);
 
   const answeredInCurrentSection = Object.keys(answers).filter((key) =>
     key.startsWith(`${projectId}-${currentSectionIndex}-`)

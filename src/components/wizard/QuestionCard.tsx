@@ -6,10 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Sparkles, Loader2, SkipForward } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sparkles, Loader2, SkipForward, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { debounce } from "@/lib/utils";
-import { getQuestionnaire } from "@/lib/questionnaire-data";
+import { getQuestionnaire, getQuestionText, getQuestionExamples } from "@/lib/questionnaire-data";
 
 interface QuestionCardProps {
   projectId: string;
@@ -58,8 +59,12 @@ export function QuestionCard({ projectId, questionId }: QuestionCardProps) {
 
   const questionnaire = getQuestionnaire(questionnaireType);
   const currentSection = questionnaire[currentSectionIndex];
-  const questionText = currentSection?.questions[currentQuestionIndex] || "Question not available";
+  const currentQuestion = currentSection?.questions[currentQuestionIndex];
+  const questionText = currentQuestion ? getQuestionText(currentQuestion) : "Question not available";
+  const questionExamples = currentQuestion ? getQuestionExamples(currentQuestion) : undefined;
   const isQuestionAvailable = questionText !== "Question not available";
+
+  const [showExamples, setShowExamples] = useState(false);
 
   console.log('[QuestionCard Debug]', {
     questionnaireType,
@@ -69,6 +74,7 @@ export function QuestionCard({ projectId, questionId }: QuestionCardProps) {
     currentSectionTitle: currentSection?.title,
     currentSectionQuestionsCount: currentSection?.questions.length,
     questionText: questionText.substring(0, 50),
+    hasExamples: !!questionExamples,
   });
 
   const debouncedSave = debounce((value: unknown) => {

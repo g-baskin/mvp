@@ -1,9 +1,14 @@
 // Questionnaire data based on Universal_MVP_Onboarding_Template_v2.md
 
+export interface Question {
+  text: string;
+  examples?: string[];
+}
+
 export interface QuestionnaireSection {
   id: number;
   title: string;
-  questions: string[];
+  questions: (string | Question)[];
 }
 
 // Short version: ~50 essential questions covering all 18 sections
@@ -12,9 +17,30 @@ export const SHORT_QUESTIONNAIRE: QuestionnaireSection[] = [
     id: 1,
     title: "Product/Service Fundamentals",
     questions: [
-      "What exactly is your product or service? (Describe in one sentence)",
-      "What is the core functionality or primary feature?",
-      "What makes this product/service unique or different from alternatives?",
+      {
+        text: "What exactly is your product or service? (Describe in one sentence)",
+        examples: [
+          "A mobile app that connects local dog walkers with busy pet owners",
+          "An AI-powered code review tool that catches security vulnerabilities before deployment",
+          "A subscription box service delivering curated snacks from around the world"
+        ]
+      },
+      {
+        text: "What is the core functionality or primary feature?",
+        examples: [
+          "Real-time GPS tracking so pet owners can see their dog's walk route",
+          "Automated scanning of pull requests with instant security alerts",
+          "Monthly delivery of 15-20 unique snacks with tasting notes and origin stories"
+        ]
+      },
+      {
+        text: "What makes this product/service unique or different from alternatives?",
+        examples: [
+          "We verify all walkers with background checks and require pet first-aid certification",
+          "Our AI is trained on 10M+ security incidents, not just basic pattern matching",
+          "Every box includes a cultural guide and video content from local producers"
+        ]
+      },
     ],
   },
   {
@@ -191,4 +217,12 @@ export function getQuestionnaire(type: "full" | "short"): QuestionnaireSection[]
 
 export function getTotalQuestions(type: "full" | "short"): number {
   return type === "short" ? SHORT_TOTAL_QUESTIONS : FULL_TOTAL_QUESTIONS;
+}
+
+export function getQuestionText(question: string | Question): string {
+  return typeof question === "string" ? question : question.text;
+}
+
+export function getQuestionExamples(question: string | Question): string[] | undefined {
+  return typeof question === "string" ? undefined : question.examples;
 }
