@@ -45,38 +45,36 @@ export function WizardLayout({ projectId }: WizardLayoutProps) {
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          <div className="container max-w-4xl mx-auto p-8">
+          <div className="container max-w-4xl mx-auto p-8 space-y-6">
             <QuestionCard
               projectId={projectId}
               questionId={currentQuestionId}
             />
-          </div>
-        </div>
 
-        <div className="border-t bg-card">
-          <div className="container max-w-4xl mx-auto p-6 flex items-center justify-between">
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <Save className="h-4 w-4" />
-              {lastSavedAt ? (
-                <span>Saved at {new Date(lastSavedAt).toLocaleTimeString()}</span>
-              ) : (
-                <span>Not saved yet</span>
-              )}
-            </div>
+            <div className="border-t pt-6 flex items-center justify-between">
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <Save className="h-4 w-4" />
+                {lastSavedAt ? (
+                  <span>Saved at {new Date(lastSavedAt).toLocaleTimeString()}</span>
+                ) : (
+                  <span>Not saved yet</span>
+                )}
+              </div>
 
-            <div className="flex items-center gap-4">
-              <Button
-                variant="outline"
-                onClick={handlePrevious}
-                disabled={!canGoPrevious}
-              >
-                <ChevronLeft className="h-4 w-4" />
-                Previous
-              </Button>
-              <Button onClick={handleNext}>
-                Next
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="outline"
+                  onClick={handlePrevious}
+                  disabled={!canGoPrevious}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Button>
+                <Button onClick={handleNext}>
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
