@@ -45,45 +45,32 @@ export async function parseProjectAnswers(projectId: string): Promise<AnswerCont
 }
 
 export function generateFeaturesMd(answers: AnswerContext[]): string {
-  const projectOverview = answers.find(a => a.sectionNumber === 1 && a.questionNumber === 1)
-  const targetUsers = answers.find(a => a.sectionNumber === 1 && a.questionNumber === 2)
-  const coreProblem = answers.find(a => a.sectionNumber === 1 && a.questionNumber === 3)
-
   let content = "# Features Specification\n\n"
   content += "*Auto-generated from MVP Questionnaire responses*\n\n"
 
-  if (projectOverview) {
-    content += "## Project Overview\n\n"
-    content += `${projectOverview.answerText}\n\n`
-  }
+  const featureSections = [
+    "Product/Service Fundamentals",
+    "Problem & Solution Validation",
+    "Value Proposition & Differentiation",
+    "Target Market & Customer",
+  ]
 
-  if (targetUsers) {
-    content += "## Target Users\n\n"
-    content += `${targetUsers.answerText}\n\n`
-  }
+  const sectionsByTitle = answers.reduce((acc, answer) => {
+    const key = answer.sectionTitle
+    if (!acc[key]) {
+      acc[key] = []
+    }
+    acc[key].push(answer)
+    return acc
+  }, {} as Record<string, AnswerContext[]>)
 
-  if (coreProblem) {
-    content += "## Problem Statement\n\n"
-    content += `${coreProblem.answerText}\n\n`
-  }
-
-  const featuresBySection = answers
-    .filter(a => a.sectionNumber >= 2 && a.sectionNumber <= 10)
-    .reduce((acc, answer) => {
-      const key = answer.sectionTitle
-      if (!acc[key]) {
-        acc[key] = []
+  for (const [sectionTitle, sectionAnswers] of Object.entries(sectionsByTitle)) {
+    if (featureSections.some(fs => sectionTitle.includes(fs) || fs.includes(sectionTitle))) {
+      content += `## ${sectionTitle}\n\n`
+      for (const answer of sectionAnswers) {
+        content += `**${answer.questionText}**\n\n`
+        content += `${answer.answerText}\n\n`
       }
-      acc[key].push(answer)
-      return acc
-    }, {} as Record<string, AnswerContext[]>)
-
-  content += "## Core Features\n\n"
-  for (const [sectionTitle, sectionAnswers] of Object.entries(featuresBySection)) {
-    content += `### ${sectionTitle}\n\n`
-    for (const answer of sectionAnswers) {
-      content += `**${answer.questionText}**\n\n`
-      content += `${answer.answerText}\n\n`
     }
   }
 
@@ -91,54 +78,62 @@ export function generateFeaturesMd(answers: AnswerContext[]): string {
 }
 
 export function generateCodeStructureMd(answers: AnswerContext[]): string {
-  const techStack = answers.filter(a => a.sectionNumber === 11)
-  const architecture = answers.filter(a => a.sectionNumber === 12)
-
   let content = "# Code Structure\n\n"
   content += "*Auto-generated from technical architecture responses*\n\n"
 
-  content += "## Technology Stack\n\n"
-  for (const answer of techStack) {
-    content += `**${answer.questionText}**\n\n`
-    content += `${answer.answerText}\n\n`
+  const techSections = answers.filter(a =>
+    a.sectionTitle.includes("Technical") ||
+    a.sectionTitle.includes("Architecture") ||
+    a.sectionTitle.includes("Development")
+  )
+
+  if (techSections.length > 0) {
+    content += "## Technology Stack\n\n"
+    for (const answer of techSections) {
+      content += `**${answer.questionText}**\n\n`
+      content += `${answer.answerText}\n\n`
+    }
   }
 
-  content += "## Architecture Decisions\n\n"
-  for (const answer of architecture) {
-    content += `**${answer.questionText}**\n\n`
-    content += `${answer.answerText}\n\n`
-  }
-
-  content += "## Directory Structure\n\n"
+  content += "## Recommended Directory Structure\n\n"
   content += "```\n"
   content += "project/\n"
   content += "├── src/\n"
-  content += "│   ├── app/\n"
-  content += "│   ├── components/\n"
-  content += "│   ├── lib/\n"
-  content += "│   └── stores/\n"
+  content += "│   ├── app/           # Next.js pages and routes\n"
+  content += "│   ├── components/    # Reusable UI components\n"
+  content += "│   ├── lib/          # Utilities and helpers\n"
+  content += "│   └── stores/       # State management\n"
   content += "├── prisma/\n"
-  content += "│   └── schema.prisma\n"
-  content += "├── public/\n"
-  content += "└── package.json\n"
+  content += "│   └── schema.prisma # Database schema\n"
+  content += "├── public/           # Static assets\n"
+  content += "└── tests/            # Test files\n"
   content += "```\n\n"
 
   return content
 }
 
 export function generateDatabaseSchemaMd(answers: AnswerContext[]): string {
-  const dataModels = answers.filter(a => a.sectionNumber === 13)
-
   let content = "# Database Schema\n\n"
-  content += "*Auto-generated from data modeling responses*\n\n"
+  content += "*Auto-generated from questionnaire responses*\n\n"
 
-  content += "## Data Models\n\n"
-  for (const answer of dataModels) {
-    content += `**${answer.questionText}**\n\n`
-    content += `${answer.answerText}\n\n`
+  const relevantAnswers = answers.filter(a =>
+    a.questionText.toLowerCase().includes("data") ||
+    a.questionText.toLowerCase().includes("model") ||
+    a.questionText.toLowerCase().includes("store") ||
+    a.questionText.toLowerCase().includes("user") ||
+    a.questionText.toLowerCase().includes("database")
+  )
+
+  if (relevantAnswers.length > 0) {
+    content += "## Data Requirements\n\n"
+    for (const answer of relevantAnswers) {
+      content += `**${answer.questionText}**\n\n`
+      content += `${answer.answerText}\n\n`
+    }
   }
 
-  content += "## Prisma Schema\n\n"
+  content += "## Starter Prisma Schema\n\n"
+  content += "Based on your questionnaire responses, here's a suggested starting schema:\n\n"
   content += "```prisma\n"
   content += "generator client {\n"
   content += "  provider = \"prisma-client-js\"\n"
@@ -147,105 +142,222 @@ export function generateDatabaseSchemaMd(answers: AnswerContext[]): string {
   content += "  provider = \"postgresql\"\n"
   content += "  url      = env(\"DATABASE_URL\")\n"
   content += "}\n\n"
-  content += "// TODO: Define models based on data requirements\n"
+  content += "model User {\n"
+  content += "  id        String   @id @default(cuid())\n"
+  content += "  email     String   @unique\n"
+  content += "  name      String?\n"
+  content += "  createdAt DateTime @default(now())\n"
+  content += "  updatedAt DateTime @updatedAt\n"
+  content += "}\n\n"
+  content += "// TODO: Add additional models based on your specific requirements\n"
   content += "```\n\n"
 
   return content
 }
 
 export function generateApiSpecMd(answers: AnswerContext[]): string {
-  const apiAnswers = answers.filter(a => a.sectionNumber === 14)
-
   let content = "# API Specification\n\n"
-  content += "*Auto-generated from API design responses*\n\n"
+  content += "*Auto-generated from questionnaire responses*\n\n"
 
-  content += "## API Endpoints\n\n"
-  for (const answer of apiAnswers) {
-    content += `**${answer.questionText}**\n\n`
-    content += `${answer.answerText}\n\n`
+  const techAnswers = answers.filter(a =>
+    a.sectionTitle.includes("Technical") ||
+    a.sectionTitle.includes("Architecture") ||
+    a.questionText.toLowerCase().includes("api") ||
+    a.questionText.toLowerCase().includes("backend") ||
+    a.questionText.toLowerCase().includes("endpoint")
+  )
+
+  if (techAnswers.length > 0) {
+    content += "## API Design Considerations\n\n"
+    for (const answer of techAnswers) {
+      content += `**${answer.questionText}**\n\n`
+      content += `${answer.answerText}\n\n`
+    }
   }
 
-  content += "## Authentication\n\n"
-  const authAnswers = answers.filter(a => a.sectionNumber === 15)
-  for (const answer of authAnswers) {
-    content += `**${answer.questionText}**\n\n`
-    content += `${answer.answerText}\n\n`
-  }
+  content += "## Recommended API Structure\n\n"
+  content += "### RESTful Endpoints\n\n"
+  content += "```\n"
+  content += "GET    /api/users          # List users\n"
+  content += "POST   /api/users          # Create user\n"
+  content += "GET    /api/users/:id      # Get user\n"
+  content += "PUT    /api/users/:id      # Update user\n"
+  content += "DELETE /api/users/:id      # Delete user\n"
+  content += "```\n\n"
+
+  content += "### Authentication\n\n"
+  content += "Consider using NextAuth.js for authentication:\n\n"
+  content += "- JWT-based sessions\n"
+  content += "- OAuth providers (Google, GitHub)\n"
+  content += "- Email/password authentication\n"
+  content += "- Protected API routes with middleware\n\n"
 
   return content
 }
 
 export function generateUiSpecMd(answers: AnswerContext[]): string {
-  const uiAnswers = answers.filter(a => a.sectionNumber >= 7 && a.sectionNumber <= 9)
-
   let content = "# UI/UX Specification\n\n"
-  content += "*Auto-generated from design and user experience responses*\n\n"
+  content += "*Auto-generated from questionnaire responses*\n\n"
 
-  content += "## Design System\n\n"
-  const designAnswers = uiAnswers.filter(a => a.sectionNumber === 7)
-  for (const answer of designAnswers) {
-    content += `**${answer.questionText}**\n\n`
-    content += `${answer.answerText}\n\n`
+  const uiAnswers = answers.filter(a =>
+    a.sectionTitle.includes("User Experience") ||
+    a.sectionTitle.includes("Design") ||
+    a.sectionTitle.includes("UX") ||
+    a.sectionTitle.includes("UI") ||
+    a.questionText.toLowerCase().includes("design") ||
+    a.questionText.toLowerCase().includes("user") ||
+    a.questionText.toLowerCase().includes("interface") ||
+    a.questionText.toLowerCase().includes("flow") ||
+    a.questionText.toLowerCase().includes("onboarding")
+  )
+
+  if (uiAnswers.length > 0) {
+    content += "## User Experience Requirements\n\n"
+    for (const answer of uiAnswers) {
+      content += `**${answer.questionText}**\n\n`
+      content += `${answer.answerText}\n\n`
+    }
   }
 
-  content += "## User Flows\n\n"
-  const flowAnswers = uiAnswers.filter(a => a.sectionNumber === 8)
-  for (const answer of flowAnswers) {
-    content += `**${answer.questionText}**\n\n`
-    content += `${answer.answerText}\n\n`
-  }
-
-  content += "## Components\n\n"
-  const componentAnswers = uiAnswers.filter(a => a.sectionNumber === 9)
-  for (const answer of componentAnswers) {
-    content += `**${answer.questionText}**\n\n`
-    content += `${answer.answerText}\n\n`
-  }
+  content += "## Design System Recommendations\n\n"
+  content += "- Use Tailwind CSS for styling consistency\n"
+  content += "- Leverage shadcn/ui components for rapid development\n"
+  content += "- Implement a consistent color palette from DESIGN_SYSTEM.md\n"
+  content += "- Follow accessibility guidelines (WCAG 2.1 AA)\n"
+  content += "- Ensure responsive design for mobile, tablet, and desktop\n\n"
 
   return content
 }
 
 export function generateTestingPlanMd(answers: AnswerContext[]): string {
-  const testingAnswers = answers.filter(a => a.sectionNumber === 16)
-
   let content = "# Testing Plan\n\n"
-  content += "*Auto-generated from testing strategy responses*\n\n"
+  content += "*Auto-generated from questionnaire responses*\n\n"
 
-  content += "## Testing Strategy\n\n"
-  for (const answer of testingAnswers) {
-    content += `**${answer.questionText}**\n\n`
-    content += `${answer.answerText}\n\n`
+  const testingAnswers = answers.filter(a =>
+    a.questionText.toLowerCase().includes("test") ||
+    a.questionText.toLowerCase().includes("quality") ||
+    a.questionText.toLowerCase().includes("validation")
+  )
+
+  if (testingAnswers.length > 0) {
+    content += "## Testing Requirements\n\n"
+    for (const answer of testingAnswers) {
+      content += `**${answer.questionText}**\n\n`
+      content += `${answer.answerText}\n\n`
+    }
   }
+
+  content += "## Recommended Testing Strategy\n\n"
+  content += "### Unit Tests\n"
+  content += "- Test individual functions and components in isolation\n"
+  content += "- Use Jest or Vitest for testing framework\n"
+  content += "- Aim for 80%+ code coverage on critical paths\n\n"
+
+  content += "### Integration Tests\n"
+  content += "- Test API endpoints with supertest\n"
+  content += "- Test database operations with test database\n"
+  content += "- Test authentication flows\n\n"
+
+  content += "### End-to-End Tests\n"
+  content += "- Use Playwright or Cypress\n"
+  content += "- Test critical user journeys\n"
+  content += "- Run in CI/CD pipeline before deployment\n\n"
 
   return content
 }
 
 export function generateDeploymentPlanMd(answers: AnswerContext[]): string {
-  const deploymentAnswers = answers.filter(a => a.sectionNumber === 17)
-
   let content = "# Deployment Plan\n\n"
-  content += "*Auto-generated from deployment strategy responses*\n\n"
+  content += "*Auto-generated from questionnaire responses*\n\n"
 
-  content += "## Deployment Strategy\n\n"
-  for (const answer of deploymentAnswers) {
-    content += `**${answer.questionText}**\n\n`
-    content += `${answer.answerText}\n\n`
+  const deploymentAnswers = answers.filter(a =>
+    a.questionText.toLowerCase().includes("deploy") ||
+    a.questionText.toLowerCase().includes("hosting") ||
+    a.questionText.toLowerCase().includes("infrastructure") ||
+    a.questionText.toLowerCase().includes("launch")
+  )
+
+  if (deploymentAnswers.length > 0) {
+    content += "## Deployment Requirements\n\n"
+    for (const answer of deploymentAnswers) {
+      content += `**${answer.questionText}**\n\n`
+      content += `${answer.answerText}\n\n`
+    }
   }
+
+  content += "## Recommended Deployment Strategy\n\n"
+  content += "### Hosting Options\n\n"
+  content += "**Vercel (Recommended for Next.js)**\n"
+  content += "- Zero-config deployment\n"
+  content += "- Automatic HTTPS and CDN\n"
+  content += "- Serverless functions for API routes\n"
+  content += "- Easy preview deployments for PRs\n\n"
+
+  content += "**Alternative Options**\n"
+  content += "- Netlify: Similar to Vercel\n"
+  content += "- AWS: More control, higher complexity\n"
+  content += "- Railway/Render: Good for full-stack apps with databases\n\n"
+
+  content += "### CI/CD Pipeline\n\n"
+  content += "1. Push code to GitHub\n"
+  content += "2. Run tests automatically\n"
+  content += "3. Deploy to staging environment\n"
+  content += "4. Manual approval for production\n"
+  content += "5. Deploy to production\n\n"
+
+  content += "### Environment Variables\n"
+  content += "- Configure in hosting platform dashboard\n"
+  content += "- Never commit .env files to git\n"
+  content += "- Use different values for staging/production\n\n"
 
   return content
 }
 
 export function generateProjectRoadmapMd(answers: AnswerContext[]): string {
-  const roadmapAnswers = answers.filter(a => a.sectionNumber === 18)
-
   let content = "# Project Roadmap\n\n"
-  content += "*Auto-generated from project planning responses*\n\n"
+  content += "*Auto-generated from questionnaire responses*\n\n"
 
-  content += "## Milestones\n\n"
-  for (const answer of roadmapAnswers) {
-    content += `**${answer.questionText}**\n\n`
-    content += `${answer.answerText}\n\n`
+  const roadmapAnswers = answers.filter(a =>
+    a.questionText.toLowerCase().includes("timeline") ||
+    a.questionText.toLowerCase().includes("milestone") ||
+    a.questionText.toLowerCase().includes("launch") ||
+    a.questionText.toLowerCase().includes("roadmap") ||
+    a.sectionTitle.includes("Go-to-Market") ||
+    a.sectionTitle.includes("Strategy")
+  )
+
+  if (roadmapAnswers.length > 0) {
+    content += "## Project Planning\n\n"
+    for (const answer of roadmapAnswers) {
+      content += `**${answer.questionText}**\n\n`
+      content += `${answer.answerText}\n\n`
+    }
   }
+
+  content += "## Suggested Development Phases\n\n"
+  content += "### Phase 1: MVP Development (Weeks 1-4)\n"
+  content += "- Set up development environment\n"
+  content += "- Build core features\n"
+  content += "- Implement basic authentication\n"
+  content += "- Create essential UI components\n\n"
+
+  content += "### Phase 2: Testing & Refinement (Weeks 5-6)\n"
+  content += "- Write and run tests\n"
+  content += "- Fix bugs and edge cases\n"
+  content += "- Gather feedback from beta users\n"
+  content += "- Improve UX based on feedback\n\n"
+
+  content += "### Phase 3: Launch Preparation (Weeks 7-8)\n"
+  content += "- Set up production environment\n"
+  content += "- Configure monitoring and analytics\n"
+  content += "- Prepare marketing materials\n"
+  content += "- Conduct security audit\n\n"
+
+  content += "### Phase 4: Launch & Iterate (Week 9+)\n"
+  content += "- Launch to target audience\n"
+  content += "- Monitor performance and errors\n"
+  content += "- Collect user feedback\n"
+  content += "- Plan next features based on data\n\n"
 
   return content
 }
