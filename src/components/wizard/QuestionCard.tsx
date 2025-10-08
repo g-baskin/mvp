@@ -156,6 +156,17 @@ export function QuestionCard({ projectId, questionId }: QuestionCardProps) {
                 </Button>
               ) : (
                 <>
+                  {questionExamples && questionExamples.length > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowExamples(true)}
+                      className="gap-2 text-amber-600 hover:text-amber-700 border-amber-300 hover:border-amber-400"
+                    >
+                      <Lightbulb className="h-4 w-4" />
+                      Examples
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     size="sm"
@@ -244,6 +255,46 @@ export function QuestionCard({ projectId, questionId }: QuestionCardProps) {
           </CardContent>
         </Card>
       )}
+
+      <Dialog open={showExamples} onOpenChange={setShowExamples}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <Lightbulb className="h-6 w-6 text-amber-500" />
+              <DialogTitle className="font-heading text-xl">Example Answers</DialogTitle>
+            </div>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-muted-foreground">
+              Here are some example answers to help guide your response:
+            </p>
+            {questionExamples?.map((example, index) => (
+              <div key={index} className="space-y-2">
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-amber-50 border border-amber-200">
+                  <span className="text-sm font-semibold text-amber-700 mt-0.5">
+                    {index + 1}.
+                  </span>
+                  <p className="text-sm font-body text-foreground flex-1">
+                    {example}
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setAnswer(example);
+                    saveAnswer(questionId, example);
+                    setShowExamples(false);
+                  }}
+                  className="ml-8"
+                >
+                  Use this example
+                </Button>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
