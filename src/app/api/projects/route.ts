@@ -6,7 +6,7 @@ import { apiSuccess, apiError, validateRequest } from "@/lib/api-utils"
 const createProjectSchema = z.object({
   name: z.string().min(1).max(100),
   description: z.string().optional(),
-  questionnaireType: z.enum(["full", "short"]).default("full"),
+  questionnaireType: z.enum(["full", "short", "essential"]).default("full"),
 })
 
 export async function GET() {
