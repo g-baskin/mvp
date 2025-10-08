@@ -7,7 +7,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Sparkles, Loader2, SkipForward, Lightbulb } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Sparkles, Loader2, SkipForward, Lightbulb, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { debounce } from "@/lib/utils";
 import { getQuestionnaire, getQuestionText, getQuestionExamples } from "@/lib/questionnaire-data";
@@ -29,6 +35,13 @@ export function QuestionCard({ projectId, questionId }: QuestionCardProps) {
 
   const [questionnaireType, setQuestionnaireType] = useState<"full" | "short" | "essential">("full");
   const [isLoadingProject, setIsLoadingProject] = useState(true);
+  const [aiProvider, setAiProvider] = useState<"claude" | "openai" | "zai">(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("aiProvider");
+      return (saved as "claude" | "openai" | "zai") || "claude";
+    }
+    return "claude";
+  });
 
   const existingAnswer = getAnswer(questionId);
   const existingSuggestion = getAISuggestion(questionId);
@@ -96,11 +109,49 @@ export function QuestionCard({ projectId, questionId }: QuestionCardProps) {
     setIsLoadingAI(true);
     setShowAISuggestion(true);
 
-    setTimeout(() => {
-      const mockSuggestion = `Based on your previous answers, here's a suggestion for "${questionText}":\n\nConsider focusing on the specific user needs and pain points you identified earlier. Your answer should align with the project goals and target audience.`;
-      addAISuggestion(questionId, mockSuggestion, 0.85);
+    try {
+      const response = await fetch(`/api/projects/${projectId}/ai-suggest`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          provider: aiProvider,
+          questionText,
+          sectionTitle: currentSection?.title,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to get AI suggestion");
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        addAISuggestion(questionId, result.data.suggestion, result.data.confidence);
+      }
+    } catch (error) {
+      console.error("AI suggestion error:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to get AI suggestion. Please try again.";
+      addAISuggestion(questionId, `Error: ${errorMessage}`, 0);
+    } finally {
       setIsLoadingAI(false);
-    }, 1500);
+    }
+  };
+
+  const handleProviderChange = (provider: "claude" | "openai" | "zai") => {
+    setAiProvider(provider);
+    localStorage.setItem("aiProvider", provider);
+  };
+
+  const getProviderLabel = (provider: string) => {
+    const labels = {
+      claude: "Claude (Anthropic)",
+      openai: "GPT-4 (OpenAI)",
+      zai: "GLM-4.6 (Z.ai)",
+    };
+    return labels[provider as keyof typeof labels] || provider;
   };
 
   const handleUseSuggestion = () => {
@@ -176,19 +227,54 @@ export function QuestionCard({ projectId, questionId }: QuestionCardProps) {
                     <SkipForward className="h-4 w-4" />
                     Skip
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleGetAIHelp}
-                    disabled={isLoadingAI}
-                  >
-                    {isLoadingAI ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Sparkles className="h-4 w-4" />
-                    )}
-                    Get Help from Claude
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-1 px-2"
+                        >
+                          {getProviderLabel(aiProvider).split("(")[0].trim()}
+                          <ChevronDown className="h-3 w-3" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => handleProviderChange("claude")}
+                          className={aiProvider === "claude" ? "bg-accent" : ""}
+                        >
+                          Claude (Anthropic)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleProviderChange("openai")}
+                          className={aiProvider === "openai" ? "bg-accent" : ""}
+                        >
+                          GPT-4 (OpenAI)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleProviderChange("zai")}
+                          className={aiProvider === "zai" ? "bg-accent" : ""}
+                        >
+                          GLM-4.6 (Z.ai)
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleGetAIHelp}
+                      disabled={isLoadingAI}
+                      className="gap-1"
+                    >
+                      {isLoadingAI ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-4 w-4" />
+                      )}
+                      Get Help
+                    </Button>
+                  </div>
                 </>
               )}
             </div>
