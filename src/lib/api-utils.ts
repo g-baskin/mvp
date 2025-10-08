@@ -9,6 +9,9 @@ export interface ApiResponse<T = any> {
   message?: string
 }
 
+// Project ID validation schema
+export const projectIdSchema = z.string().min(1, "Project ID is required")
+
 // Success response helper
 export function apiSuccess<T>(data: T, message?: string): NextResponse<ApiResponse<T>> {
   return NextResponse.json({
@@ -53,4 +56,18 @@ export function corsHeaders() {
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
   }
+}
+
+// Validate project ID from route params
+export function validateProjectId(projectId: string): { success: true; data: string } | { success: false; error: string } {
+  const result = projectIdSchema.safeParse(projectId)
+
+  if (!result.success) {
+    return {
+      success: false,
+      error: `Invalid project ID: ${result.error.errors.map(e => e.message).join(", ")}`,
+    }
+  }
+
+  return { success: true, data: result.data }
 }

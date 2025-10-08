@@ -10,24 +10,58 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Basic configuration model (required for Prisma client generation)
-model Setting {
-  id          String   @id @default(cuid())
-  key         String   @unique
-  value       String
+model Project {
+  id          String    @id @default(cuid())
+  name        String
   description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  sections    Section[]
+  outputs     Output[]
+
+  @@index([createdAt])
 }
 
-// Add your additional data models here as needed
-// Example:
-// model Product {
-//   id          String   @id @default(cuid())
-//   name        String
-//   description String?
-//   price       Float
-//   createdAt   DateTime @default(now())
-//   updatedAt   DateTime @updatedAt
-// }
+model Section {
+  id             String   @id @default(cuid())
+  projectId      String
+  sectionNumber  Int
+  title          String
+  totalQuestions Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  project        Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  answers        Answer[]
+
+  @@unique([projectId, sectionNumber])
+  @@index([projectId])
+}
+
+model Answer {
+  id             String   @id @default(cuid())
+  sectionId      String
+  questionNumber Int
+  questionText   String
+  answerText     String?
+  aiSuggestion   String?
+  isAiGenerated  Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  section        Section  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@unique([sectionId, questionNumber])
+  @@index([sectionId])
+}
+
+model Output {
+  id        String   @id @default(cuid())
+  projectId String
+  type      String
+  content   String
+  createdAt DateTime @default(now())
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, type])
+  @@index([projectId])
+}
 
