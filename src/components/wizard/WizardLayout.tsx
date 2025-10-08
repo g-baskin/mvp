@@ -48,6 +48,25 @@ export function WizardLayout({ projectId }: WizardLayoutProps) {
 
   const questionnaire = getQuestionnaire(questionnaireType);
 
+  // Auto-correct invalid wizard position when project loads
+  useEffect(() => {
+    if (isLoadingProject) return;
+
+    const currentSection = questionnaire[currentSectionIndex];
+    const isValidPosition = currentSection && currentQuestionIndex < currentSection.questions.length;
+
+    if (!isValidPosition) {
+      console.log('[WizardLayout] Invalid position detected, resetting to first question', {
+        currentSectionIndex,
+        currentQuestionIndex,
+        sectionExists: !!currentSection,
+        sectionQuestionCount: currentSection?.questions.length,
+      });
+      setCurrentSection(0);
+      setCurrentQuestion(0);
+    }
+  }, [isLoadingProject, questionnaireType, currentSectionIndex, currentQuestionIndex, questionnaire, setCurrentSection, setCurrentQuestion]);
+
   const findNextAvailableQuestion = (sectionIndex: number, questionIndex: number): { section: number; question: number } | null => {
     let currentSection = sectionIndex;
     let currentQuestion = questionIndex + 1;
