@@ -21,6 +21,7 @@ export function WizardLayout({ projectId }: WizardLayoutProps) {
   const currentQuestionIndex = useWizardStore((state) => state.currentQuestionIndex);
   const setCurrentSection = useWizardStore((state) => state.setCurrentSection);
   const setCurrentQuestion = useWizardStore((state) => state.setCurrentQuestion);
+  const setCurrentProject = useWizardStore((state) => state.setCurrentProject);
   const lastSavedAt = useWizardStore((state) => state.lastSavedAt);
   const skipQuestion = useWizardStore((state) => state.skipQuestion);
 
@@ -30,6 +31,8 @@ export function WizardLayout({ projectId }: WizardLayoutProps) {
   const currentQuestionId = `${projectId}-${currentSectionIndex}-${currentQuestionIndex}`;
 
   useEffect(() => {
+    setCurrentProject(projectId);
+
     async function loadProject() {
       try {
         const response = await fetch(`/api/projects/${projectId}`);
@@ -44,7 +47,7 @@ export function WizardLayout({ projectId }: WizardLayoutProps) {
       }
     }
     loadProject();
-  }, [projectId]);
+  }, [projectId, setCurrentProject]);
 
   const questionnaire = getQuestionnaire(questionnaireType);
 
@@ -128,6 +131,10 @@ export function WizardLayout({ projectId }: WizardLayoutProps) {
     router.push("/");
   };
 
+  const handleCompleteWizard = () => {
+    router.push(`/projects/${projectId}/export`);
+  };
+
   const canGoPrevious = findPreviousAvailableQuestion(currentSectionIndex, currentQuestionIndex) !== null;
   const canGoNext = findNextAvailableQuestion(currentSectionIndex, currentQuestionIndex) !== null;
 
@@ -185,8 +192,8 @@ export function WizardLayout({ projectId }: WizardLayoutProps) {
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 ) : (
-                  <Button onClick={handleBackToDashboard} variant="default">
-                    Complete Wizard
+                  <Button onClick={handleCompleteWizard} variant="default">
+                    Complete & Generate
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 )}

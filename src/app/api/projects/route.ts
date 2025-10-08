@@ -2,6 +2,7 @@ import { NextRequest } from "next/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { apiSuccess, apiError, validateRequest } from "@/lib/api-utils"
+import { getTotalQuestions } from "@/lib/questionnaire-data"
 
 const createProjectSchema = z.object({
   name: z.string().min(1).max(100),
@@ -23,7 +24,8 @@ export async function GET() {
     })
 
     const projectsWithStats = projects.map((project) => {
-      const totalQuestions = 405
+      const questionnaireType = project.questionnaireType as "full" | "short" | "essential"
+      const totalQuestions = getTotalQuestions(questionnaireType)
       const answeredQuestions = project.sections.reduce(
         (sum, section) => sum + section.answers.filter((a) => a.answerText).length,
         0
@@ -34,6 +36,7 @@ export async function GET() {
         id: project.id,
         name: project.name,
         description: project.description,
+        questionnaireType: project.questionnaireType,
         createdAt: project.createdAt,
         updatedAt: project.updatedAt,
         completionPercentage,

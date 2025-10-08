@@ -77,8 +77,8 @@ export function QuestionCard({ projectId, questionId }: QuestionCardProps) {
     hasExamples: !!questionExamples,
   });
 
-  const debouncedSave = debounce((value: unknown) => {
-    saveAnswer(questionId, value as string);
+  const debouncedSave = debounce((value: unknown, qText: string) => {
+    saveAnswer(questionId, value as string, qText);
   }, 2000);
 
   useEffect(() => {
@@ -89,7 +89,7 @@ export function QuestionCard({ projectId, questionId }: QuestionCardProps) {
 
   const handleAnswerChange = (value: string) => {
     setAnswer(value);
-    debouncedSave(value);
+    debouncedSave(value, questionText);
   };
 
   const handleGetAIHelp = async () => {
@@ -106,7 +106,7 @@ export function QuestionCard({ projectId, questionId }: QuestionCardProps) {
   const handleUseSuggestion = () => {
     if (existingSuggestion) {
       setAnswer(existingSuggestion.suggestion);
-      saveAnswer(questionId, existingSuggestion.suggestion);
+      saveAnswer(questionId, existingSuggestion.suggestion, questionText);
     }
   };
 
@@ -283,7 +283,7 @@ export function QuestionCard({ projectId, questionId }: QuestionCardProps) {
                   size="sm"
                   onClick={() => {
                     setAnswer(example);
-                    saveAnswer(questionId, example);
+                    saveAnswer(questionId, example, questionText);
                     setShowExamples(false);
                   }}
                   className="ml-8"

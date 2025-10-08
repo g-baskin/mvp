@@ -33,7 +33,7 @@ export interface WizardActions {
   previousQuestion: () => void;
   nextSection: () => void;
   previousSection: () => void;
-  saveAnswer: (questionId: string, answer: QuestionAnswer["answer"]) => void;
+  saveAnswer: (questionId: string, answer: QuestionAnswer["answer"], questionText?: string) => Promise<void>;
   getAnswer: (questionId: string) => QuestionAnswer | undefined;
   skipQuestion: (questionId: string) => void;
   isQuestionSkipped: (questionId: string) => boolean;
@@ -103,7 +103,10 @@ export const useWizardStore = create<WizardStore>()(
         }));
       },
 
-      saveAnswer: (questionId: string, answer: QuestionAnswer["answer"]) => {
+      saveAnswer: async (questionId: string, answer: QuestionAnswer["answer"], questionText?: string) => {
+        const state = get();
+        const projectId = state.currentProjectId;
+
         set((state) => ({
           answers: {
             ...state.answers,
@@ -115,6 +118,29 @@ export const useWizardStore = create<WizardStore>()(
           },
           lastSavedAt: new Date(),
         }));
+
+        if (projectId) {
+          const parts = questionId.split('-');
+          if (parts.length >= 3) {
+            const sectionNumber = parseInt(parts[1], 10) + 1;
+            const questionNumber = parseInt(parts[2], 10) + 1;
+
+            try {
+              await fetch(`/api/projects/${projectId}/answers`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  sectionNumber,
+                  questionNumber,
+                  questionText: questionText || `Question ${questionNumber}`,
+                  answerText: typeof answer === 'string' ? answer : JSON.stringify(answer),
+                }),
+              });
+            } catch (error) {
+              console.error('Failed to save answer to database:', error);
+            }
+          }
+        }
       },
 
       getAnswer: (questionId: string) => {
