@@ -1,11 +1,12 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useWizardStore } from "@/stores/wizard-store";
 import { WizardNavigation } from "./WizardNavigation";
 import { QuestionCard } from "./QuestionCard";
 import { ProgressBar } from "./ProgressBar";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Save } from "lucide-react";
+import { ChevronLeft, ChevronRight, Save, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface WizardLayoutProps {
@@ -13,6 +14,7 @@ interface WizardLayoutProps {
 }
 
 export function WizardLayout({ projectId }: WizardLayoutProps) {
+  const router = useRouter();
   const currentSectionIndex = useWizardStore((state) => state.currentSectionIndex);
   const currentQuestionIndex = useWizardStore((state) => state.currentQuestionIndex);
   const nextQuestion = useWizardStore((state) => state.nextQuestion);
@@ -31,6 +33,10 @@ export function WizardLayout({ projectId }: WizardLayoutProps) {
     nextQuestion();
   };
 
+  const handleBackToDashboard = () => {
+    router.push("/");
+  };
+
   const canGoPrevious = currentQuestionIndex > 0 || currentSectionIndex > 0;
 
   return (
@@ -40,6 +46,17 @@ export function WizardLayout({ projectId }: WizardLayoutProps) {
       <div className="flex-1 flex flex-col">
         <div className="border-b bg-card">
           <div className="container max-w-4xl mx-auto p-6">
+            <div className="flex items-center justify-between gap-6 mb-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleBackToDashboard}
+                className="gap-2"
+              >
+                <Home className="h-4 w-4" />
+                Back to Dashboard
+              </Button>
+            </div>
             <ProgressBar projectId={projectId} />
           </div>
         </div>
