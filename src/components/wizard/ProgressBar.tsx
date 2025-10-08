@@ -1,23 +1,43 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useWizardStore } from "@/stores/wizard-store";
 import { Progress } from "@/components/ui/progress";
+import { getTotalQuestions } from "@/lib/questionnaire-data";
 
 interface ProgressBarProps {
   projectId: string;
 }
 
-const TOTAL_QUESTIONS = 405;
-
 export function ProgressBar({ projectId }: ProgressBarProps) {
   const answers = useWizardStore((state) => state.answers);
   const currentSectionIndex = useWizardStore((state) => state.currentSectionIndex);
+  const [totalQuestions, setTotalQuestions] = useState(405);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadProjectType() {
+      try {
+        const response = await fetch(`/api/projects/${projectId}`);
+        if (response.ok) {
+          const data = await response.json();
+          const questionnaireType = data.data.questionnaireType || "full";
+          setTotalQuestions(getTotalQuestions(questionnaireType));
+        }
+      } catch (error) {
+        console.error("Failed to load project type:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadProjectType();
+  }, [projectId]);
 
   const answeredCount = Object.keys(answers).filter((key) =>
     key.startsWith(`${projectId}-`)
   ).length;
 
-  const overallProgress = Math.round((answeredCount / TOTAL_QUESTIONS) * 100);
+  const overallProgress = Math.round((answeredCount / totalQuestions) * 100);
 
   const answeredInCurrentSection = Object.keys(answers).filter((key) =>
     key.startsWith(`${projectId}-${currentSectionIndex}-`)
@@ -28,7 +48,7 @@ export function ProgressBar({ projectId }: ProgressBarProps) {
       <div className="flex items-center justify-between text-sm">
         <span className="font-medium text-foreground">Overall Progress</span>
         <span className="text-muted-foreground">
-          {answeredCount} of {TOTAL_QUESTIONS} questions ({overallProgress}%)
+          {isLoading ? "Loading..." : `${answeredCount} of ${totalQuestions} questions (${overallProgress}%)`}
         </span>
       </div>
       <Progress value={overallProgress} className="h-2" />

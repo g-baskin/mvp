@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useWizardStore } from "@/stores/wizard-store";
 import { WizardNavigation } from "./WizardNavigation";
@@ -8,6 +9,7 @@ import { ProgressBar } from "./ProgressBar";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Save, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getQuestionnaire } from "@/lib/questionnaire-data";
 
 interface WizardLayoutProps {
   projectId: string;
@@ -17,27 +19,98 @@ export function WizardLayout({ projectId }: WizardLayoutProps) {
   const router = useRouter();
   const currentSectionIndex = useWizardStore((state) => state.currentSectionIndex);
   const currentQuestionIndex = useWizardStore((state) => state.currentQuestionIndex);
-  const nextQuestion = useWizardStore((state) => state.nextQuestion);
-  const previousQuestion = useWizardStore((state) => state.previousQuestion);
+  const setCurrentSection = useWizardStore((state) => state.setCurrentSection);
+  const setCurrentQuestion = useWizardStore((state) => state.setCurrentQuestion);
   const lastSavedAt = useWizardStore((state) => state.lastSavedAt);
+  const skipQuestion = useWizardStore((state) => state.skipQuestion);
+
+  const [questionnaireType, setQuestionnaireType] = useState<"full" | "short">("full");
+  const [isLoadingProject, setIsLoadingProject] = useState(true);
 
   const currentQuestionId = `${projectId}-${currentSectionIndex}-${currentQuestionIndex}`;
 
+  useEffect(() => {
+    async function loadProject() {
+      try {
+        const response = await fetch(`/api/projects/${projectId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setQuestionnaireType(data.data.questionnaireType || "full");
+        }
+      } catch (error) {
+        console.error("Failed to load project:", error);
+      } finally {
+        setIsLoadingProject(false);
+      }
+    }
+    loadProject();
+  }, [projectId]);
+
+  const questionnaire = getQuestionnaire(questionnaireType);
+
+  const findNextAvailableQuestion = (sectionIndex: number, questionIndex: number): { section: number; question: number } | null => {
+    let currentSection = sectionIndex;
+    let currentQuestion = questionIndex + 1;
+
+    while (currentSection < questionnaire.length) {
+      const section = questionnaire[currentSection];
+
+      if (currentQuestion < section.questions.length) {
+        return { section: currentSection, question: currentQuestion };
+      }
+
+      currentSection++;
+      currentQuestion = 0;
+    }
+
+    return null;
+  };
+
+  const findPreviousAvailableQuestion = (sectionIndex: number, questionIndex: number): { section: number; question: number } | null => {
+    let currentSection = sectionIndex;
+    let currentQuestion = questionIndex - 1;
+
+    while (currentSection >= 0) {
+      if (currentQuestion >= 0) {
+        return { section: currentSection, question: currentQuestion };
+      }
+
+      currentSection--;
+      if (currentSection >= 0) {
+        currentQuestion = questionnaire[currentSection].questions.length - 1;
+      }
+    }
+
+    return null;
+  };
+
   const handlePrevious = () => {
-    if (currentQuestionIndex > 0) {
-      previousQuestion();
+    const prev = findPreviousAvailableQuestion(currentSectionIndex, currentQuestionIndex);
+    if (prev) {
+      if (prev.section !== currentSectionIndex) {
+        setCurrentSection(prev.section);
+      }
+      setCurrentQuestion(prev.question);
     }
   };
 
   const handleNext = () => {
-    nextQuestion();
+    const next = findNextAvailableQuestion(currentSectionIndex, currentQuestionIndex);
+    if (next) {
+      if (next.section !== currentSectionIndex) {
+        setCurrentSection(next.section);
+      } else {
+        setCurrentQuestion(next.question);
+      }
+    }
   };
 
   const handleBackToDashboard = () => {
     router.push("/");
   };
 
-  const canGoPrevious = currentQuestionIndex > 0 || currentSectionIndex > 0;
+  const canGoPrevious = findPreviousAvailableQuestion(currentSectionIndex, currentQuestionIndex) !== null;
+  const canGoNext = findNextAvailableQuestion(currentSectionIndex, currentQuestionIndex) !== null;
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -87,8 +160,8 @@ export function WizardLayout({ projectId }: WizardLayoutProps) {
                   <ChevronLeft className="h-4 w-4" />
                   Previous
                 </Button>
-                <Button onClick={handleNext}>
-                  Next
+                <Button onClick={handleNext} disabled={!canGoNext}>
+                  {canGoNext ? "Next" : "Completed"}
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
