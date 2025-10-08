@@ -1,6 +1,49 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Dashboard', () => {
+  test.beforeAll(async ({ browser }) => {
+    const page = await browser.newPage();
+    await page.goto('http://localhost:3002');
+    await page.waitForTimeout(1000);
+
+    const deleteButtons = page.getByRole('button', { name: /delete/i });
+    const count = await deleteButtons.count();
+
+    for (let i = 0; i < count; i++) {
+      await page.goto('http://localhost:3002');
+      await page.waitForTimeout(500);
+
+      const buttons = page.getByRole('button', { name: /delete/i });
+      const button = buttons.first();
+
+      if (await button.isVisible()) {
+        page.on('dialog', dialog => dialog.accept());
+        await button.click();
+        await page.waitForTimeout(1000);
+      }
+    }
+
+    await page.close();
+  });
+
+  test.afterEach(async ({ page }) => {
+    await page.goto('http://localhost:3002');
+    await page.waitForTimeout(500);
+
+    const deleteButtons = page.getByRole('button', { name: /delete/i });
+    const count = await deleteButtons.count();
+
+    for (let i = 0; i < count; i++) {
+      const buttons = page.getByRole('button', { name: /delete/i });
+      const button = buttons.first();
+
+      if (await button.isVisible()) {
+        page.on('dialog', dialog => dialog.accept());
+        await button.click();
+        await page.waitForTimeout(1000);
+      }
+    }
+  });
   test('should load dashboard and show New Project button', async ({ page }) => {
     await page.goto('http://localhost:3002');
 
