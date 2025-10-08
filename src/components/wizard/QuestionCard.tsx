@@ -315,7 +315,7 @@ export function QuestionCard({ projectId, questionId }: QuestionCardProps) {
             {isLoadingAI ? (
               <div className="flex items-center gap-4 text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Claude is thinking...</span>
+                <span>{getProviderLabel(aiProvider).split("(")[0].trim()} is thinking...</span>
               </div>
             ) : existingSuggestion ? (
               <div className="space-y-6">
