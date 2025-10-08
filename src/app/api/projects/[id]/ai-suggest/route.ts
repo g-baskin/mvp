@@ -68,6 +68,14 @@ export async function POST(
       previousAnswers
     )
 
+    console.log("[AI Suggest Debug]", {
+      provider,
+      projectName: project.name,
+      previousAnswersCount: previousAnswers.length,
+      currentQuestion: questionText.substring(0, 50) + "...",
+      promptLength: contextPrompt.length,
+    })
+
     let suggestion: string
 
     if (provider === "claude") {
