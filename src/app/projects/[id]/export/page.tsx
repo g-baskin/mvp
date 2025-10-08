@@ -36,7 +36,7 @@ export default function ExportPage() {
 
   const checkExistingOutputs = useCallback(async () => {
     try {
-      const response = await fetch(`/api/projects/${projectId}/download`)
+      const response = await fetch(`/api/projects/${projectId}/outputs`)
       if (response.ok) {
         const data = await response.json()
         if (data.success && data.data.outputs.length > 0) {
