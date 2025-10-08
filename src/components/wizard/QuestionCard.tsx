@@ -27,7 +27,7 @@ export function QuestionCard({ projectId, questionId }: QuestionCardProps) {
   const nextQuestion = useWizardStore((state) => state.nextQuestion);
   const skipQuestion = useWizardStore((state) => state.skipQuestion);
 
-  const [questionnaireType, setQuestionnaireType] = useState<"full" | "short">("full");
+  const [questionnaireType, setQuestionnaireType] = useState<"full" | "short" | "essential">("full");
   const [isLoadingProject, setIsLoadingProject] = useState(true);
 
   const existingAnswer = getAnswer(questionId);

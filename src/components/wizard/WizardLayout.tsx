@@ -24,7 +24,7 @@ export function WizardLayout({ projectId }: WizardLayoutProps) {
   const lastSavedAt = useWizardStore((state) => state.lastSavedAt);
   const skipQuestion = useWizardStore((state) => state.skipQuestion);
 
-  const [questionnaireType, setQuestionnaireType] = useState<"full" | "short">("full");
+  const [questionnaireType, setQuestionnaireType] = useState<"full" | "short" | "essential">("full");
   const [isLoadingProject, setIsLoadingProject] = useState(true);
 
   const currentQuestionId = `${projectId}-${currentSectionIndex}-${currentQuestionIndex}`;

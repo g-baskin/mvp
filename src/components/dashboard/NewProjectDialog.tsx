@@ -24,12 +24,12 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import { Plus, FileText, Zap } from "lucide-react"
+import { Plus, FileText, Zap, Target } from "lucide-react"
 
 const projectSchema = z.object({
   name: z.string().min(1, "Project name is required").max(100, "Name too long"),
   description: z.string().max(500, "Description too long").optional(),
-  questionnaireType: z.enum(["full", "short"]).default("full"),
+  questionnaireType: z.enum(["full", "short", "essential"]).default("full"),
 })
 
 type ProjectFormData = z.infer<typeof projectSchema>
@@ -73,7 +73,7 @@ export function NewProjectDialog({ onCreateProject, isLoading }: NewProjectDialo
         <DialogHeader>
           <DialogTitle className="font-heading text-2xl">Create New Project</DialogTitle>
           <DialogDescription>
-            Start a new MVP project. Answer 405 questions to generate complete specifications.
+            Start a new MVP project. Choose from 20 essential, 52 short, or 405 comprehensive questions.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -120,18 +120,18 @@ export function NewProjectDialog({ onCreateProject, isLoading }: NewProjectDialo
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Questionnaire Type</FormLabel>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-3">
                     <Button
                       type="button"
-                      variant={field.value === "full" ? "default" : "outline"}
+                      variant={field.value === "essential" ? "default" : "outline"}
                       className="h-auto flex-col gap-2 p-4"
-                      onClick={() => field.onChange("full")}
+                      onClick={() => field.onChange("essential")}
                       disabled={isLoading}
                     >
-                      <FileText className="h-6 w-6" />
+                      <Target className="h-6 w-6" />
                       <div className="text-center">
-                        <div className="font-semibold">Full Questionnaire</div>
-                        <div className="text-xs opacity-80">405 questions</div>
+                        <div className="font-semibold">Essential</div>
+                        <div className="text-xs opacity-80">20 questions</div>
                       </div>
                     </Button>
                     <Button
@@ -143,8 +143,21 @@ export function NewProjectDialog({ onCreateProject, isLoading }: NewProjectDialo
                     >
                       <Zap className="h-6 w-6" />
                       <div className="text-center">
-                        <div className="font-semibold">Short Version</div>
-                        <div className="text-xs opacity-80">~50 essential questions</div>
+                        <div className="font-semibold">Short</div>
+                        <div className="text-xs opacity-80">52 questions</div>
+                      </div>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={field.value === "full" ? "default" : "outline"}
+                      className="h-auto flex-col gap-2 p-4"
+                      onClick={() => field.onChange("full")}
+                      disabled={isLoading}
+                    >
+                      <FileText className="h-6 w-6" />
+                      <div className="text-center">
+                        <div className="font-semibold">Full</div>
+                        <div className="text-xs opacity-80">405 questions</div>
                       </div>
                     </Button>
                   </div>
