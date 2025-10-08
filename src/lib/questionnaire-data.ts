@@ -180,23 +180,10 @@ export const SHORT_TOTAL_QUESTIONS = SHORT_QUESTIONNAIRE.reduce(
 
 // Full version: All 405 questions from the template
 // TODO: Populate with all 405 questions from Universal_MVP_Onboarding_Template_v2.md
-export const FULL_QUESTIONNAIRE: QuestionnaireSection[] = [
-  {
-    id: 1,
-    title: "Product/Service Fundamentals",
-    questions: [
-      "What exactly is your product or service? (Describe in one sentence)",
-      "What category does it fall into? (e.g., SaaS, marketplace, hardware, service, etc.)",
-      "Is this a B2B, B2C, or B2B2C offering?",
-      "What is the core functionality or primary feature?",
-      "What makes this product/service unique or different from alternatives?",
-      // ... Add remaining 20 questions from section 1
-    ],
-  },
-  // ... Add remaining 17 sections with all questions
-];
+// For now, using SHORT_QUESTIONNAIRE as a placeholder
+export const FULL_QUESTIONNAIRE: QuestionnaireSection[] = SHORT_QUESTIONNAIRE;
 
-export const FULL_TOTAL_QUESTIONS = 405;
+export const FULL_TOTAL_QUESTIONS = SHORT_TOTAL_QUESTIONS;
 
 export function getQuestionnaire(type: "full" | "short"): QuestionnaireSection[] {
   return type === "short" ? SHORT_QUESTIONNAIRE : FULL_QUESTIONNAIRE;

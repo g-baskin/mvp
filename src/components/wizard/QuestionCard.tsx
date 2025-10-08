@@ -61,6 +61,16 @@ export function QuestionCard({ projectId, questionId }: QuestionCardProps) {
   const questionText = currentSection?.questions[currentQuestionIndex] || "Question not available";
   const isQuestionAvailable = questionText !== "Question not available";
 
+  console.log('[QuestionCard Debug]', {
+    questionnaireType,
+    currentSectionIndex,
+    currentQuestionIndex,
+    questionnaireLength: questionnaire.length,
+    currentSectionTitle: currentSection?.title,
+    currentSectionQuestionsCount: currentSection?.questions.length,
+    questionText: questionText.substring(0, 50),
+  });
+
   const debouncedSave = debounce((value: unknown) => {
     saveAnswer(questionId, value as string);
   }, 2000);
