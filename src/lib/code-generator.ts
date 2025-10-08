@@ -48,24 +48,30 @@ export function generateFeaturesMd(answers: AnswerContext[]): string {
   let content = "# Features Specification\n\n"
   content += "*Auto-generated from MVP Questionnaire responses*\n\n"
 
-  const featureSections = [
-    "Product/Service Fundamentals",
-    "Problem & Solution Validation",
-    "Value Proposition & Differentiation",
-    "Target Market & Customer",
-  ]
+  const featureAnswers = answers.filter(a =>
+    a.questionText.toLowerCase().includes("product") ||
+    a.questionText.toLowerCase().includes("service") ||
+    a.questionText.toLowerCase().includes("problem") ||
+    a.questionText.toLowerCase().includes("solution") ||
+    a.questionText.toLowerCase().includes("value") ||
+    a.questionText.toLowerCase().includes("customer") ||
+    a.questionText.toLowerCase().includes("unique") ||
+    a.questionText.toLowerCase().includes("benefit") ||
+    a.questionText.toLowerCase().includes("target") ||
+    a.sectionNumber <= 5
+  )
 
-  const sectionsByTitle = answers.reduce((acc, answer) => {
-    const key = answer.sectionTitle
-    if (!acc[key]) {
-      acc[key] = []
-    }
-    acc[key].push(answer)
-    return acc
-  }, {} as Record<string, AnswerContext[]>)
+  if (featureAnswers.length > 0) {
+    const bySection = featureAnswers.reduce((acc, answer) => {
+      const key = `Section ${answer.sectionNumber}: ${answer.sectionTitle}`
+      if (!acc[key]) {
+        acc[key] = []
+      }
+      acc[key].push(answer)
+      return acc
+    }, {} as Record<string, AnswerContext[]>)
 
-  for (const [sectionTitle, sectionAnswers] of Object.entries(sectionsByTitle)) {
-    if (featureSections.some(fs => sectionTitle.includes(fs) || fs.includes(sectionTitle))) {
+    for (const [sectionTitle, sectionAnswers] of Object.entries(bySection)) {
       content += `## ${sectionTitle}\n\n`
       for (const answer of sectionAnswers) {
         content += `**${answer.questionText}**\n\n`
