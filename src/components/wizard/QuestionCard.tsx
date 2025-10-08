@@ -6,29 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Sparkles, Loader2, SkipForward } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { debounce } from "@/lib/utils";
+import { getQuestionnaire } from "@/lib/questionnaire-data";
 
 interface QuestionCardProps {
   projectId: string;
   questionId: string;
 }
-
-const MOCK_QUESTIONS: Record<number, string[]> = {
-  0: [
-    "What is the name of your project?",
-    "Provide a brief description of your project (1-2 sentences)",
-    "What is the primary problem your project solves?",
-    "Who is your target audience?",
-    "What makes your project unique or different from existing solutions?",
-  ],
-  1: [
-    "Describe your primary user persona in detail",
-    "What are the main pain points your users experience?",
-    "How tech-savvy is your target audience?",
-  ],
-};
 
 export function QuestionCard({ projectId, questionId }: QuestionCardProps) {
   const currentSectionIndex = useWizardStore((state) => state.currentSectionIndex);
@@ -37,6 +23,11 @@ export function QuestionCard({ projectId, questionId }: QuestionCardProps) {
   const getAnswer = useWizardStore((state) => state.getAnswer);
   const getAISuggestion = useWizardStore((state) => state.getAISuggestion);
   const addAISuggestion = useWizardStore((state) => state.addAISuggestion);
+  const nextQuestion = useWizardStore((state) => state.nextQuestion);
+  const skipQuestion = useWizardStore((state) => state.skipQuestion);
+
+  const [questionnaireType, setQuestionnaireType] = useState<"full" | "short">("full");
+  const [isLoadingProject, setIsLoadingProject] = useState(true);
 
   const existingAnswer = getAnswer(questionId);
   const existingSuggestion = getAISuggestion(questionId);
@@ -47,8 +38,28 @@ export function QuestionCard({ projectId, questionId }: QuestionCardProps) {
   const [showAISuggestion, setShowAISuggestion] = useState(false);
   const [isLoadingAI, setIsLoadingAI] = useState(false);
 
-  const questions = MOCK_QUESTIONS[currentSectionIndex] || ["Question not available"];
-  const questionText = questions[currentQuestionIndex] || "Question not available";
+  // Load project to get questionnaire type
+  useEffect(() => {
+    async function loadProject() {
+      try {
+        const response = await fetch(`/api/projects/${projectId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setQuestionnaireType(data.data.questionnaireType || "full");
+        }
+      } catch (error) {
+        console.error("Failed to load project:", error);
+      } finally {
+        setIsLoadingProject(false);
+      }
+    }
+    loadProject();
+  }, [projectId]);
+
+  const questionnaire = getQuestionnaire(questionnaireType);
+  const currentSection = questionnaire[currentSectionIndex];
+  const questionText = currentSection?.questions[currentQuestionIndex] || "Question not available";
+  const isQuestionAvailable = questionText !== "Question not available";
 
   const debouncedSave = debounce((value: unknown) => {
     saveAnswer(questionId, value as string);
@@ -83,6 +94,26 @@ export function QuestionCard({ projectId, questionId }: QuestionCardProps) {
     }
   };
 
+  const handleSkip = () => {
+    if (skipQuestion) {
+      skipQuestion(questionId);
+      nextQuestion();
+    }
+  };
+
+  if (isLoadingProject) {
+    return (
+      <Card>
+        <CardContent className="p-8">
+          <div className="flex items-center justify-center gap-4 text-muted-foreground">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span>Loading question...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <Card>
@@ -90,37 +121,59 @@ export function QuestionCard({ projectId, questionId }: QuestionCardProps) {
           <div className="flex items-start justify-between gap-6">
             <div className="flex-1">
               <div className="text-sm text-muted-foreground mb-2">
-                Question {currentQuestionIndex + 1}
+                Section {currentSectionIndex + 1}: {currentSection?.title || "Loading..."}
               </div>
               <CardTitle className="font-heading text-xl">
-                {questionText}
+                Question {currentQuestionIndex + 1}: {questionText}
               </CardTitle>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleGetAIHelp}
-              disabled={isLoadingAI}
-            >
-              {isLoadingAI ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+            <div className="flex items-center gap-2">
+              {!isQuestionAvailable ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSkip}
+                  className="gap-2"
+                >
+                  <SkipForward className="h-4 w-4" />
+                  Skip
+                </Button>
               ) : (
-                <Sparkles className="h-4 w-4" />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGetAIHelp}
+                  disabled={isLoadingAI}
+                >
+                  {isLoadingAI ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4" />
+                  )}
+                  Get Help from Claude
+                </Button>
               )}
-              Get Help from Claude
-            </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
-          <Textarea
-            value={answer}
-            onChange={(e) => handleAnswerChange(e.target.value)}
-            placeholder="Type your answer here..."
-            className={cn(
-              "min-h-[200px] font-body resize-none",
-              "focus-visible:ring-2 focus-visible:ring-primary"
-            )}
-          />
+          {!isQuestionAvailable ? (
+            <Alert>
+              <AlertDescription>
+                This question is not available in the {questionnaireType === "short" ? "short" : "full"} questionnaire. Click "Skip" to continue to the next question.
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <Textarea
+              value={answer}
+              onChange={(e) => handleAnswerChange(e.target.value)}
+              placeholder="Type your answer here..."
+              className={cn(
+                "min-h-[200px] font-body resize-none",
+                "focus-visible:ring-2 focus-visible:ring-primary"
+              )}
+            />
+          )}
         </CardContent>
       </Card>
 

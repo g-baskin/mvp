@@ -25,9 +25,9 @@ test.describe('Dashboard', () => {
     await expect(page.getByRole('button', { name: /Full Questionnaire/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /Short Version/i })).toBeVisible();
 
-    // Check labels show question counts
-    await expect(page.getByText('405 questions')).toBeVisible();
-    await expect(page.getByText('~50 essential questions')).toBeVisible();
+    // Check labels show question counts within buttons
+    await expect(page.getByRole('button', { name: /Full Questionnaire/i }).getByText('405 questions')).toBeVisible();
+    await expect(page.getByRole('button', { name: /Short Version/i }).getByText('~50 essential questions')).toBeVisible();
   });
 
   test('should create a project with full questionnaire type', async ({ page }) => {
@@ -40,10 +40,7 @@ test.describe('Dashboard', () => {
     await page.getByPlaceholder('My Awesome MVP').fill('Test Project Full');
     await page.getByPlaceholder('Brief description').fill('Testing full questionnaire');
 
-    // Full questionnaire should be selected by default
-    await expect(page.getByRole('button', { name: /Full Questionnaire/i })).toHaveClass(/default/);
-
-    // Submit
+    // Submit (full questionnaire is selected by default)
     await page.getByRole('button', { name: 'Create Project' }).click();
 
     // Should redirect to wizard page

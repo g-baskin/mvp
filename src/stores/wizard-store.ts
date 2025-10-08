@@ -19,6 +19,7 @@ export interface WizardState {
   currentSectionIndex: number;
   currentQuestionIndex: number;
   answers: Record<string, QuestionAnswer>;
+  skippedQuestions: Set<string>;
   aiSuggestions: Record<string, AISuggestion>;
   isLoading: boolean;
   lastSavedAt: Date | null;
@@ -34,6 +35,8 @@ export interface WizardActions {
   previousSection: () => void;
   saveAnswer: (questionId: string, answer: QuestionAnswer["answer"]) => void;
   getAnswer: (questionId: string) => QuestionAnswer | undefined;
+  skipQuestion: (questionId: string) => void;
+  isQuestionSkipped: (questionId: string) => boolean;
   addAISuggestion: (questionId: string, suggestion: string, confidence: number) => void;
   getAISuggestion: (questionId: string) => AISuggestion | undefined;
   setIsLoading: (isLoading: boolean) => void;
@@ -48,6 +51,7 @@ const initialState: WizardState = {
   currentSectionIndex: 0,
   currentQuestionIndex: 0,
   answers: {},
+  skippedQuestions: new Set<string>(),
   aiSuggestions: {},
   isLoading: false,
   lastSavedAt: null,
@@ -117,6 +121,16 @@ export const useWizardStore = create<WizardStore>()(
         return get().answers[questionId];
       },
 
+      skipQuestion: (questionId: string) => {
+        set((state) => ({
+          skippedQuestions: new Set(state.skippedQuestions).add(questionId),
+        }));
+      },
+
+      isQuestionSkipped: (questionId: string) => {
+        return get().skippedQuestions.has(questionId);
+      },
+
       addAISuggestion: (questionId: string, suggestion: string, confidence: number) => {
         set((state) => ({
           aiSuggestions: {
@@ -144,6 +158,7 @@ export const useWizardStore = create<WizardStore>()(
           currentSectionIndex: 0,
           currentQuestionIndex: 0,
           answers: {},
+          skippedQuestions: new Set<string>(),
           aiSuggestions: {},
           isLoading: false,
           lastSavedAt: null,
@@ -161,8 +176,14 @@ export const useWizardStore = create<WizardStore>()(
         currentSectionIndex: state.currentSectionIndex,
         currentQuestionIndex: state.currentQuestionIndex,
         answers: state.answers,
+        skippedQuestions: Array.from(state.skippedQuestions),
         aiSuggestions: state.aiSuggestions,
         lastSavedAt: state.lastSavedAt,
+      }),
+      merge: (persistedState: any, currentState) => ({
+        ...currentState,
+        ...persistedState,
+        skippedQuestions: new Set(persistedState?.skippedQuestions || []),
       }),
     }
   )
