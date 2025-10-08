@@ -24,11 +24,12 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
+import { Plus, FileText, Zap } from "lucide-react"
 
 const projectSchema = z.object({
   name: z.string().min(1, "Project name is required").max(100, "Name too long"),
   description: z.string().max(500, "Description too long").optional(),
+  questionnaireType: z.enum(["full", "short"]).default("full"),
 })
 
 type ProjectFormData = z.infer<typeof projectSchema>
@@ -46,6 +47,7 @@ export function NewProjectDialog({ onCreateProject, isLoading }: NewProjectDialo
     defaultValues: {
       name: "",
       description: "",
+      questionnaireType: "full",
     },
   })
 
@@ -108,6 +110,44 @@ export function NewProjectDialog({ onCreateProject, isLoading }: NewProjectDialo
                       disabled={isLoading}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="questionnaireType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Questionnaire Type</FormLabel>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Button
+                      type="button"
+                      variant={field.value === "full" ? "default" : "outline"}
+                      className="h-auto flex-col gap-2 p-4"
+                      onClick={() => field.onChange("full")}
+                      disabled={isLoading}
+                    >
+                      <FileText className="h-6 w-6" />
+                      <div className="text-center">
+                        <div className="font-semibold">Full Questionnaire</div>
+                        <div className="text-xs opacity-80">405 questions</div>
+                      </div>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={field.value === "short" ? "default" : "outline"}
+                      className="h-auto flex-col gap-2 p-4"
+                      onClick={() => field.onChange("short")}
+                      disabled={isLoading}
+                    >
+                      <Zap className="h-6 w-6" />
+                      <div className="text-center">
+                        <div className="font-semibold">Short Version</div>
+                        <div className="text-xs opacity-80">~50 essential questions</div>
+                      </div>
+                    </Button>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}

@@ -1,0 +1,73 @@
+# Page snapshot
+
+```yaml
+- generic:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - heading [level=1]: My Projects
+            - paragraph: Create and manage your MVP specification projects
+          - button [expanded]:
+            - img
+            - text: New Project
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - generic: Coding
+                - paragraph: kdsfd
+              - button:
+                - img
+                - generic: Open menu
+          - generic:
+            - generic:
+              - generic:
+                - generic: Progress
+                - generic: 0%
+              - progressbar
+          - generic:
+            - generic: 9 minutes ago
+            - button:
+              - img
+              - text: Continue
+  - button "Open Next.js Dev Tools" [ref=e6] [cursor=pointer]:
+    - img [ref=e7]
+  - alert
+  - dialog "Create New Project" [ref=e11]:
+    - generic [ref=e12]:
+      - heading "Create New Project" [level=2] [ref=e13]
+      - paragraph [ref=e14]: Start a new MVP project. Answer 405 questions to generate complete specifications.
+    - generic [ref=e15]:
+      - generic [ref=e16]:
+        - text: Project Name
+        - textbox "Project Name" [ref=e17]:
+          - /placeholder: My Awesome MVP
+          - text: Test Project Full
+      - generic [ref=e18]:
+        - text: Description (Optional)
+        - textbox "Description (Optional)" [active] [ref=e19]:
+          - /placeholder: Brief description of your project...
+          - text: Testing full questionnaire
+      - generic [ref=e20]:
+        - text: Questionnaire Type
+        - generic [ref=e21]:
+          - button "Full Questionnaire 405 questions" [ref=e22] [cursor=pointer]:
+            - img
+            - generic [ref=e23]:
+              - generic [ref=e24]: Full Questionnaire
+              - generic [ref=e25]: 405 questions
+          - button "Short Version ~50 essential questions" [ref=e26] [cursor=pointer]:
+            - img
+            - generic [ref=e27]:
+              - generic [ref=e28]: Short Version
+              - generic [ref=e29]: ~50 essential questions
+      - generic [ref=e30]:
+        - button "Cancel" [ref=e31] [cursor=pointer]
+        - button "Create Project" [ref=e32] [cursor=pointer]
+    - button "Close" [ref=e33] [cursor=pointer]:
+      - img [ref=e34]
+      - generic [ref=e37]: Close
+```

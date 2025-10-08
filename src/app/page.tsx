@@ -37,7 +37,7 @@ export default function DashboardPage() {
       }
 
       const data = await response.json()
-      setProjects(data.projects || [])
+      setProjects(data.data || [])
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load projects")
     } finally {
@@ -60,7 +60,7 @@ export default function DashboardPage() {
 
       const result = await response.json()
       await loadProjects()
-      router.push(`/projects/${result.project.id}`)
+      router.push(`/projects/${result.data.id}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create project")
     } finally {
