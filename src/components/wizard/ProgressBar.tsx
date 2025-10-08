@@ -11,6 +11,7 @@ interface ProgressBarProps {
 
 export function ProgressBar({ projectId }: ProgressBarProps) {
   const answers = useWizardStore((state) => state.answers);
+  const skippedQuestions = useWizardStore((state) => state.skippedQuestions);
   const currentSectionIndex = useWizardStore((state) => state.currentSectionIndex);
   const [totalQuestions, setTotalQuestions] = useState(405);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,9 +38,18 @@ export function ProgressBar({ projectId }: ProgressBarProps) {
     key.startsWith(`${projectId}-`)
   ).length;
 
-  const overallProgress = Math.round((answeredCount / totalQuestions) * 100);
+  const skippedCount = Array.from(skippedQuestions).filter((key) =>
+    key.startsWith(`${projectId}-`)
+  ).length;
+
+  const completedCount = answeredCount + skippedCount;
+  const overallProgress = Math.round((completedCount / totalQuestions) * 100);
 
   const answeredInCurrentSection = Object.keys(answers).filter((key) =>
+    key.startsWith(`${projectId}-${currentSectionIndex}-`)
+  ).length;
+
+  const skippedInCurrentSection = Array.from(skippedQuestions).filter((key) =>
     key.startsWith(`${projectId}-${currentSectionIndex}-`)
   ).length;
 
@@ -48,14 +58,14 @@ export function ProgressBar({ projectId }: ProgressBarProps) {
       <div className="flex items-center justify-between text-sm">
         <span className="font-medium text-foreground">Overall Progress</span>
         <span className="text-muted-foreground">
-          {isLoading ? "Loading..." : `${answeredCount} of ${totalQuestions} questions (${overallProgress}%)`}
+          {isLoading ? "Loading..." : `${completedCount} of ${totalQuestions} questions (${overallProgress}%)`}
         </span>
       </div>
       <Progress value={overallProgress} className="h-2" />
 
       <div className="flex items-center justify-between text-xs text-muted-foreground pt-2">
         <span>Section {currentSectionIndex + 1} of 18</span>
-        <span>{answeredInCurrentSection} answered in this section</span>
+        <span>{answeredInCurrentSection} answered, {skippedInCurrentSection} skipped in this section</span>
       </div>
     </div>
   );

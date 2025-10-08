@@ -179,10 +179,17 @@ export function WizardLayout({ projectId }: WizardLayoutProps) {
                   <ChevronLeft className="h-4 w-4" />
                   Previous
                 </Button>
-                <Button onClick={handleNext} disabled={!canGoNext}>
-                  {canGoNext ? "Next" : "Completed"}
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
+                {canGoNext ? (
+                  <Button onClick={handleNext}>
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                ) : (
+                  <Button onClick={handleBackToDashboard} variant="default">
+                    Complete Wizard
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             </div>
           </div>

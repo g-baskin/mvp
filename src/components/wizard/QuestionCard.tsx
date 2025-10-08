@@ -149,19 +149,30 @@ export function QuestionCard({ projectId, questionId }: QuestionCardProps) {
                   Skip
                 </Button>
               ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleGetAIHelp}
-                  disabled={isLoadingAI}
-                >
-                  {isLoadingAI ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Sparkles className="h-4 w-4" />
-                  )}
-                  Get Help from Claude
-                </Button>
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSkip}
+                    className="gap-2"
+                  >
+                    <SkipForward className="h-4 w-4" />
+                    Skip
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleGetAIHelp}
+                    disabled={isLoadingAI}
+                  >
+                    {isLoadingAI ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-4 w-4" />
+                    )}
+                    Get Help from Claude
+                  </Button>
+                </>
               )}
             </div>
           </div>
